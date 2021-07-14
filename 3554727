@@ -1,0 +1,587 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jun 20 18:29:00 2021
+
+@author: user
+"""
+
+#Importing Libraries
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import scipy as sp
+import missingno as msno
+
+
+#import the dataset
+df = pd.read_csv("android-games.csv")
+
+#dimensions of the dataset
+dimensions = df.shape
+print(dimensions)
+
+#name of columns / variables
+names = df.columns
+print(names)
+ 
+#information of the data
+info = df.info()
+
+#descriptive statistics for continous variables 
+describe = df.describe().T
+
+#first_10 part of the dataset
+first_10 = df.head(10)
+
+#last_10 part of the dataset
+last_10 = df.tail(10)
+
+#number of missing data
+df.isnull().sum()
+
+#plot missing data
+msno.bar(df)
+plt.show()
+
+
+#Data Cleaning & Manipulating
+
+#cleaning installs
+df.installs.nunique()#checking number of uniques
+df.installs.unique()#checking types of uniques
+
+convert_installs = {
+    '500.0 M' : 500000000,
+    '100.0 M' : 100000000,
+    '50.0 M'  : 50000000,
+    '10.0 M'  : 10000000,
+    '5.0 M'   : 5000000,
+    '1.0 M'   : 1000000,
+    '1000.0 M': 1000000000,
+    '500.0 k' : 500000,
+    '100.0 k' : 100000,
+    }
+df["installs"] = df["installs"].map(convert_installs)
+
+
+#check install typedata type
+df.dtypes
+
+
+#Data Visualisation
+
+#Bar-Plots
+#category
+category = df["category"].value_counts()
+category = category.reset_index()
+category.columns = ["Category" , "Count"]
+print(category)
+
+sns.catplot(y="Category",x="Count", data=category,palette="colorblind",height=5,aspect=2,kind="bar");
+plt.style.use("ggplot")
+plt.title("Figure 1: \n\n  Number of Category of Games",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("No.Of Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Category",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=0)
+plt.legend()
+plt.show()
+
+#paid
+paid = df["paid"].value_counts()
+paid = paid.reset_index()
+paid.columns = ["Paid" , "Count"]
+print(paid)
+
+sns.catplot(x="Paid",y="Count", data=paid,palette="colorblind",height=5,aspect=2,kind="bar");
+plt.style.use("ggplot")
+plt.title("Figure 2: \n\n  Number of Paid & Unpaid of Games",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("Paid",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("No.Of Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=0)
+plt.legend()
+plt.show()
+
+#games categories that are paid or not
+df["count"] = 1
+df.groupby(["category","paid"]).count()["count"].reset_index()
+
+sns.countplot(x="category",data = df, hue ="paid")    
+plt.style.use("ggplot")
+plt.title("Figure 3: \n\n  Distribution of Categories based on Paid",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("Category",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("No.Of Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=20,size=5)
+plt.legend(loc ="upper center")
+plt.figure(figsize =(8,5), dpi = 300)   
+plt.show()
+
+#games that have the most rating(total rating) by category
+sns.catplot(x="category",y="total ratings", data=df,palette="colorblind",height=5,aspect=2,kind="bar");
+plt.style.use("ggplot")
+plt.title("Figure 4: \n\n  Games That Have The Most Ratings",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("Category",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Total Ratings in Millions(M)",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=25)
+plt.legend()
+plt.show()
+
+
+#histogram
+#total ratings
+sns.histplot(data=df, x= "total ratings",stat="count")
+
+#distribution of average rating
+mean1 = df.groupby("category")["average rating"].mean().sort_values(ascending=False)
+print(round(mean1,2))
+
+mean_avg_rating = df["average rating"].mean()
+print(mean_avg_rating)
+
+sns.histplot(data=df, x= "average rating",stat="count",kde=True)
+plt.style.use("ggplot")
+plt.title("Figure 5: \n\n Distribution of Average rating",fontdict={"fontname":"Arial Black","fontsize":12,"fontweight":"bold"})
+plt.xlabel("Average Rating",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("No Of Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=0)
+plt.axvline(mean_avg_rating,0,1,color = "red")
+plt.legend()
+plt.show()
+
+ 
+
+#top 10 action games with most 5.star ratings
+df.category.unique()
+
+
+action = df.loc[df["category"] == "GAME ACTION"].sort_values("5 star ratings",ascending=False).head(10)
+
+sns.catplot(x="5 star ratings",y="title", data=action,palette="colorblind",height=5,aspect=2,kind="bar");
+plt.style.use("ggplot")
+plt.title("Figure 6: \n\n Top 10 Action Games With Most 5.star Ratings ",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("5 Star Ratings in Millions",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Action Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+positions =(0,10000000,20000000,30000000,40000000,50000000,60000000)
+labels = ("0","10","20","30","40","50","60")
+plt.xticks(positions,labels)
+plt.legend()
+plt.show()
+
+#top 10 casual games with most 5.star ratings
+casual = df.loc[df["category"] == "GAME CASUAL"].sort_values("5 star ratings",ascending=False).head(10)
+print(casual)
+
+sns.catplot(x="5 star ratings",y="title", data=casual,palette="colorblind",height=5,aspect=2,kind="bar");
+plt.style.use("ggplot")
+plt.title("Figure 7: \n\n Top 10 Casual Games With Most 5.star Ratings ",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("5 Star Ratings in Millions",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Casual Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+positions =(0,5000000,10000000,15000000,20000000)
+labels = ("0","5","10","15","20")
+plt.xticks(positions,labels)
+plt.legend()
+plt.show()
+
+#top 10 arcade games with most 5.star ratings
+arcade = df.loc[df["category"] == "GAME ARCADE"].sort_values("5 star ratings",ascending=False).head(10)
+
+sns.catplot(x="5 star ratings",y="title", data=arcade,palette="colorblind",hue ="paid",height=5,aspect=2,kind="bar");
+plt.style.use("ggplot")
+plt.title("Figure 8: \n\n Top 10 Arcade Games With Most 5.star Ratings ",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("5 Star Ratings in Millions",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Arcade Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+positions =(0,5000000,10000000,15000000,20000000,25000000)
+labels = ("0","5","10","15","20","25")
+plt.xticks(positions,labels)
+plt.legend()
+plt.show()
+
+#top 10 best 5-star rated games
+best = df[["title","5 star ratings","category","paid"]].sort_values("5 star ratings",ascending=False)
+
+sns.catplot(x="5 star ratings",y="title",data =best.head(10),palette="colorblind",height=5,aspect=2,kind="bar")
+plt.style.use("ggplot")
+plt.title("Figure 9: \n\n Top 10 Best Games With Most 5.star Ratings ",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("5 Star Ratings in Millions",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Best Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+positions =(0,10000000,20000000,30000000,40000000,50000000,60000000)
+labels = ("0","10","20","30","40","50","60")
+plt.xticks(positions,labels)
+plt.legend()
+plt.show()
+
+#most to least expensive paid games
+df.paid.nunique()
+df.paid.unique()
+
+paid1 = df.loc[df["paid"] == True].sort_values("price",ascending=False)
+
+sns.catplot(x="price",y="title",data=paid1,palette="colorblind",height=5,aspect=2,kind="bar")
+plt.style.use("ggplot")
+plt.title("Figure 10: \n\n  Price Of Paid Games ",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("Price",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=0)
+plt.legend()
+plt.show()
+
+
+#Most installed categories
+most_install = df.groupby("category")["installs"].sum().sort_values(ascending=False)
+most_install = most_install.reset_index()
+most_install.columns = ["Category", "Total Installs"]
+print(most_install)
+
+sns.catplot(x="Total Installs",y="Category",data=most_install,palette="colorblind",height=5,aspect=2,kind="bar")
+plt.style.use("ggplot")
+plt.title("Figure 11: \n\n  Most Installed Categories ",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("Installs in Millions",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Category",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+positions1 =(0,1000000000,2000000000,3000000000,4000000000,5000000000,6000000000,7000000000)
+labels1 = ("0","1000","2000","3000","4000","5000","6000","7000")
+plt.xticks(positions1,labels1)
+plt.xticks(rotation=0)
+plt.legend()
+plt.show()
+
+
+#most installed games
+games_installed = df[["title","installs","category","paid"]].sort_values("installs",ascending=False)
+print(games_installed.head(10))
+
+sns.catplot(x="installs",y="title",data =games_installed.head(10),palette="colorblind",height=5,aspect=2,kind="bar")
+plt.style.use("ggplot")
+plt.title("Figure 12: \n\n Most Installed Games ",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.xlabel("Installs in Millions",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.ylabel("Games",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+positions2 =(0,200000000,400000000,600000000,800000000,1000000000)
+labels2 = ("0","200","400","600","800","1000")
+plt.xticks(positions2,labels2)
+plt.legend()
+plt.show()
+
+
+
+#Detect Outliers
+
+#checking average rating outliers
+#boxplots
+sns.boxplot(y="average rating",data = df)
+plt.title("Figure 13: \n\n Box-Plot to Check Average Rating Outliers",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.ylabel("Average Rating",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=0)
+plt.figure(figsize =(8,5), dpi = 300)   
+plt.show()
+
+#renaming columns
+df1 = df.rename(columns={"total ratings":"total_ratings","average rating":"average_rating","5 star ratings":"Five_star_ratings"})
+
+#steps to check outliers
+#step 1. sort data in ascending order
+sort_data = np.sort(df1.average_rating)
+sort_data
+
+#step 2.Calculate Q1, Q2, Q3 and IQR.
+Q1 = np.percentile(sort_data, 25, interpolation = 'midpoint')
+Q2 = np.percentile(sort_data, 50, interpolation = 'midpoint')
+Q3 = np.percentile(sort_data, 75, interpolation = 'midpoint')
+
+print('Q1 25 percentile of the given data is, ', Q1)
+print('Q1 50 percentile of the given data is, ', Q2)
+print('Q1 75 percentile of the given data is, ', Q3)
+
+IQR = Q3 - Q1
+print('Interquartile range is', IQR)
+
+#step 4: Find the lower and upper limits as Q1 – 1.5 IQR and Q3 + 1.5 IQR, respectively.
+low_lim = Q1 - 1.5 * IQR
+up_lim = Q3 + 1.5 * IQR
+print('low_limit is', low_lim)
+print('up_limit is', up_lim)
+
+#step 5. Data points greater than the upper limit or less than the lower limit are outliers
+outlier =[]
+for x in sort_data:
+	if ((x> up_lim) or (x<low_lim)):
+		outlier.append(x)
+print(' outlier in the dataset are :', outlier)
+
+
+#check 5_star_ratings outliers
+#boxplots
+sns.boxplot(y= "installs",data =df)
+plt.title("Figure 14: \n\n Box-Plot to Check Installs Outliers",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.ylabel("Installs",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=0)
+plt.figure(figsize =(8,5), dpi = 300)   
+plt.show()
+
+#steps to check outliers
+#step 1. sort data in ascending order
+sort_data1 = np.sort(df1.Five_star_ratings)
+sort_data1
+
+#step 2.Calculate Q1, Q2, Q3 and IQR.
+Q11 = np.percentile(sort_data1, 25, interpolation = 'midpoint')
+Q21 = np.percentile(sort_data1, 50, interpolation = 'midpoint')
+Q31 = np.percentile(sort_data1, 75, interpolation = 'midpoint')
+
+print('Q1 25 percentile of the given data is, ', Q11)
+print('Q1 50 percentile of the given data is, ', Q21)
+print('Q1 75 percentile of the given data is, ', Q31)
+
+IQR1 = Q31 - Q11
+print('Interquartile range is', IQR1)
+
+
+#step 4: Find the lower and upper limits as Q1 – 1.5 IQR and Q3 + 1.5 IQR, respectively.
+low_lim1 = Q11 - 1.5 * IQR1
+up_lim1 = Q31 + 1.5 * IQR1
+print('low_limit is', low_lim1)
+print('up_limit is', up_lim1)
+
+#step 5. Data points greater than the upper limit or less than the lower limit are outliers
+outlier1 =[]
+for x in sort_data1:
+	if ((x> up_lim1) or (x<low_lim1)):
+		outlier1.append(x)
+print(' outlier in the dataset are :', outlier1)
+
+
+
+#Check for Normality
+#1. visual normality check
+
+#2. quantile-quantile plot(qqplot)
+from statsmodels.graphics.gofplots import qqplot 
+
+qqplot(df1.average_rating ,line="s")
+plt.show()
+
+#3. shapiro-wilk test but not accurate for large datasets
+from scipy.stats import shapiro
+
+stat, p1 = shapiro(df1.average_rating)
+print("Statistics=%.3f, p=%.3f"  % (stat, p1))#not gaussian/normal distribution
+
+#4. D"Agostino's K2 Test 
+from scipy.stats import normaltest
+
+stat, p2 = normaltest(df1.average_rating)
+print("Statistics=%.3f, p=%.3f"  % (stat, p2))
+#interpret
+alpha = 0.05
+if p2 > alpha:
+      print("Sample looks Gaussian (fail to reject H0)")
+else:
+      print("Sample Does Not looks Gaussian (reject H0)")      
+
+
+#Data Analysis
+ 
+#correlation analysis
+#select continous variable from dataset
+df_cor = df.iloc[:,2:14]
+df_cor = df_cor.drop(columns=["category"])
+
+corr_matrix =round(df_cor.corr(),2)
+print(corr_matrix)
+
+sns.heatmap(corr_matrix,annot=True)
+plt.title("Figure 15: \n\n  Correlation Heatmap Analysis",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.figure(figsize =(8,5), dpi = 300)   
+plt.show()       
+
+#independent t-test analysis
+from scipy.stats import ttest_ind
+
+sns.boxplot(x="paid",y="average rating",data=df)
+plt.title("Figure 16: \n\n Box-Plot to Check Indepent T-test",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.ylabel("Pad",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xlabel("Average Rating",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=0)
+plt.figure(figsize =(8,5), dpi = 300)   
+plt.show()
+
+##Ho:No significant difference in average average-rating btwn paid & not paid
+##Ha:Significant difference in average average_rating btwn paid & not paid
+
+#filter the dataset into paid & not paid
+paid11 = df.loc[df["paid"] == True,"average rating"]
+not_paid11 = df.loc[df["paid"] == False,"average rating"]
+
+#compare sample mean
+stat, p21 = ttest_ind(paid11,not_paid11)
+print("Statistics=%.3f,p=%.3f"  % ( stat, p21))
+
+#interpret
+alpha = 0.05
+if p21 > alpha:
+    print("Same distribution (fail to reject HO)")
+else:
+    print("Different distributions (reject HO, settle  for Ha)")
+
+paid11.mean()
+not_paid11.mean()
+
+#Anova Analysis
+from scipy.stats import f_oneway
+
+sns.boxplot(x="category",y="average rating",data=df)
+plt.title("Figure 17: \n\n Box-Plot to Perform ANOVA",fontdict={"fontname":"Arial Black","fontsize":"15","fontweight":"bold"})
+plt.ylabel("Average Rating",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xlabel("Category",fontdict={"fontname":"Calibri","fontsize":12,"fontweight":"bold"})
+plt.xticks(rotation=70)
+plt.figure(figsize =(8,5), dpi = 300)   
+plt.show()
+
+##Ho:No significant difference in average average-rating btwn different categories
+##Ha:Significant difference in average average-rating btwn different categories
+
+#filter the average rating btwn different categories
+df.category.unique()
+df.category.nunique()
+
+
+game_action = df.loc[df["category"] =="GAME ACTION","average rating"]
+game_adventure = df.loc[df["category"] =="GAME ADVENTURE","average rating"]
+game_arcade = df.loc[df["category"] =="GAME ARCADE","average rating"]
+game_board = df.loc[df["category"] =="GAME BOARD","average rating"]
+game_card = df.loc[df["category"] =="GAME CARD","average rating"]
+game_casino = df.loc[df["category"] =="GAME CASINO","average rating"]
+game_casual = df.loc[df["category"] =="GAME CASUAL","average rating"]
+game_educational = df.loc[df["category"] =="GAME EDUCATIONAL","average rating"]
+game_music = df.loc[df["category"] =="GAME MUSIC","average rating"]
+game_puzzle = df.loc[df["category"] =="GAME PUZZLE","average rating"]
+game_racing = df.loc[df["category"] =="GAME RACING","average rating"]
+game_role_playing = df.loc[df["category"] =="GAME ROLE PLAYING","average rating"]
+game_simulation = df.loc[df["category"] =="GAME SIMULATION","average rating"]
+game_sports = df.loc[df["category"] =="GAME SPORTS","average rating"]
+game_strategy = df.loc[df["category"] =="GAME STRATEGY","average rating"]
+game_trivia = df.loc[df["category"] =="GAME TRIVIA","average rating"]
+game_word = df.loc[df["category"] =="GAME WORD","average rating"]
+
+#compare sample mean
+stat, p55 = f_oneway(game_action,game_adventure,game_arcade,game_board,game_card ,
+  game_casino, game_casual,game_educational,game_music,game_puzzle,game_racing,
+  game_role_playing,game_simulation,game_sports,game_strategy,game_trivia,game_word)
+print("Statistics=%.3f,p=%.3f"   % (stat, p55))
+
+#interpret
+alpha = 0.05
+if p55 > alpha:
+    print("Same distribution (fail to reject HO)")
+else:
+    print("Different distributions (reject HO, settle  for Ha)")
+
+
+#pearsons chi-square analysis
+from scipy.stats import chi2_contingency
+from scipy.stats import chi2
+
+#category & paid
+dataset_table = pd.crosstab(df["category"],df["paid"])
+
+##Ho:There is no association between category & paid
+##Ha:There is an association between category & paid    
+
+#calculate chi-squared test
+stat , p67, dof , expected = chi2_contingency(dataset_table)
+print("dof=%d"  % dof)
+print(expected)
+
+#interpret test-statistic
+prob = 0.95
+critical = chi2.ppf(prob, dof)
+print("probability=%.3f, critical=%.3f, stat=%.3f" % (prob, critical, stat))
+if abs(stat) >= critical:
+    print("Dependent (reject Ho)")
+else:
+    print("Independent (fail to reject Ho)")
+
+
+#Regression Model
+
+#remove unnecessary columns
+df21 = df.drop(columns = ["rank","title","count"])
+
+
+#handling categorical variables
+#create dummy variables
+dummies = pd.get_dummies(df.category)
+dummies1 = pd.get_dummies(df.paid)
+
+#concatinate variables
+merged = pd.concat([df21,dummies,dummies1], axis = "columns")
+
+#remove categories that are dummies
+merged = merged.drop(columns = ["category","paid","GAME CARD"],axis="columns")
+
+
+#import libraries to perform regression
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split 
+
+#split the dataset into training & testing
+pa = merged.columns
+print(pa)
+
+x = merged[['total ratings',          'installs',    
+        'growth (30 days)',  'growth (60 days)',             'price',
+          '5 star ratings',    '4 star ratings',    '3 star ratings',
+          '2 star ratings',    '1 star ratings',       'GAME ACTION',
+          'GAME ADVENTURE',       'GAME ARCADE',        'GAME BOARD',
+             'GAME CASINO',       'GAME CASUAL',  'GAME EDUCATIONAL',
+              'GAME MUSIC',       'GAME PUZZLE',       'GAME RACING',
+       'GAME ROLE PLAYING',   'GAME SIMULATION',       'GAME SPORTS',
+           'GAME STRATEGY',       'GAME TRIVIA',         'GAME WORD',
+                     False,                True]]
+
+
+y=merged['average rating']
+
+
+X_train, X_test ,y_train ,y_test = train_test_split(x , y ,test_size= 0.3,random_state=42)
+
+#creating linear model & training it
+LR = LinearRegression()
+LR.fit(X_train.values,y_train.values)
+
+#use model to predict test
+prediction = LR.predict(X_test.values)
+print(prediction)
+
+#score this model
+LR.score(X_test.values,y_test.values)
+
+#check R2 of the model
+#importing r2_score module
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+
+#predicting the accuracy score
+score = r2_score(y_test,prediction)
+print("r2 score is :", score)
+print("mean_sqrd_error is :",mean_squared_error(y_test,prediction))
+print("root_mean_squared error of is :",np.sqrt(mean_squared_error(y_test,prediction)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
